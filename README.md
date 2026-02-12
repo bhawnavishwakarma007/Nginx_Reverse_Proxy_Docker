@@ -7,12 +7,13 @@
 ### Process (Initial Database Setup)
 
 Step 1:
-  -->> Create an AWS RDS MySQL instance  
-  -->> Configure the security group:
-       - Allow port 3306
-       - Allow inbound traffic from the application server  
-  -->> Connect to the RDS instance using MySQL Workbench with RDS credentials  
-  -->> Create the database and tables using Workbench  
+-->> Create an AWS RDS MySQL instance  
+-->> Configure the security group:
+- Allow port 3306
+- Allow inbound traffic from the application server  
+
+-->> Connect to the RDS instance using MySQL Workbench with RDS credentials  
+-->> Create the database and tables using Workbench  
 
 ---
 
@@ -40,36 +41,37 @@ This project contains a minimal Flask application (`app.py`) that connects to a 
 
 ## Database Setup (Example)
 
-  CREATE DATABASE dev;
-  USE dev;
+  ```bash
+    CREATE DATABASE dev;
+    USE dev;
 
-  CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE
-  );
-
+    CREATE TABLE users (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(100) NOT NULL,
+      email VARCHAR(100) NOT NULL UNIQUE
+    );
+```
 ---
 
 ## Environment Configuration
 
 Edit `app.py` and update database credentials  
 OR export environment variables before running:
-
-  DB_HOST=your-db-host  
-  DB_USER=your-db-user  
-  DB_PASS=your-db-password  
-  DB_NAME=dev  
-
+```bash
+    DB_HOST=your-db-host
+    DB_USER=your-db-user
+    DB_PASS=your-db-password
+    DB_NAME=dev
+```
 ---
 
 ## Run Flask App (Local)
 
-  python app.py
+    python app.py
 
 The application runs on port 5000 by default:
 
-  http://127.0.0.1:5000
+    http://127.0.0.1:5000
 
 ---
 
@@ -96,25 +98,25 @@ The application runs on port 5000 by default:
 
 ## API Examples
 
-  curl -X GET http://localhost:5000/users
+    curl -X GET http://localhost:5000/users
 
-  curl -X POST http://localhost:5000/users/add \
-    -H "Content-Type: application/json" \
-    -d '{"name":"John Doe","email":"john@example.com"}'
+    curl -X POST http://localhost:5000/users/add \
+      -H "Content-Type: application/json" \
+      -d '{"name":"John Doe","email":"john@example.com"}'
 
-  curl -X PUT http://localhost:5000/users/update/1 \
-    -H "Content-Type: application/json" \
-    -d '{"name":"John Updated","email":"john.updated@example.com"}'
+    curl -X PUT http://localhost:5000/users/update/1 \
+      -H "Content-Type: application/json" \
+      -d '{"name":"John Updated","email":"john.updated@example.com"}'
 
-  curl -X DELETE http://localhost:5000/users/delete/1
+    curl -X DELETE http://localhost:5000/users/delete/1
 
 ---
 
 ## Run Flask in Background (Linux)
 
-  nohup python3 app.py > flask.log 2>&1 &
-  ps aux | grep app.py
-  pkill -f app.py
+    nohup python3 app.py > flask.log 2>&1 &
+    ps aux | grep app.py
+    pkill -f app.py
 
 ---
 
@@ -128,18 +130,18 @@ The application runs on port 5000 by default:
 
 ## Nginx Reverse Proxy with Docker
 
-This setup uses **Nginx inside the frontend container** as a reverse proxy to route `/users` requests to the Flask backend.
+This setup uses Nginx inside the frontend container as a reverse proxy to route `/users` requests to the Flask backend.
 
 Architecture:
 
-  Browser
-     |
-     v
-  Nginx (Frontend Container)
-     |---- /        -> Static Frontend (HTML)
-     |---- /users   -> Flask Backend (Docker)
+    Browser
+       |
+       v
+    Nginx (Frontend Container)
+       |---- /        -> Static Frontend (HTML)
+       |---- /users   -> Flask Backend (Docker)
 
-Only **port 80** is exposed publicly.
+Only port 80 is exposed publicly.
 
 ---
 
@@ -147,8 +149,8 @@ Only **port 80** is exposed publicly.
 
 ### Build and Run Backend
 
-  docker build -t backend ./backend
-  docker run -d --name backend backend
+    docker build -t backend ./backend
+    docker run -d --name backend backend
 
 Backend runs internally on port 5000.
 
@@ -156,8 +158,8 @@ Backend runs internally on port 5000.
 
 ### Build and Run Frontend (Nginx + Reverse Proxy)
 
-  docker build -t frontend ./frontend
-  docker run -d -p 80:80 --name frontend --link backend:backend frontend
+    docker build -t frontend ./frontend
+    docker run -d -p 80:80 --name frontend --link backend:backend frontend
 
 ---
 
@@ -165,7 +167,7 @@ Backend runs internally on port 5000.
 
 Open in browser:
 
-  http://<EC2_PUBLIC_IP>
+    http://<EC2_PUBLIC_IP>
 
 Frontend loads on `/`  
 API works on `/users`
@@ -176,8 +178,8 @@ API works on `/users`
 
 - Do NOT expose port 5000 publicly
 - Security Group should allow:
-    - HTTP (80)
-    - MySQL (3306) only from app server
+  - HTTP (80)
+  - MySQL (3306) only from app server
 - This setup avoids CORS issues
 - Clean production-style deployment using minimal Docker commands
 
@@ -185,16 +187,16 @@ API works on `/users`
 
 ## Repository Structure
 
-  backend/
-    - app.py
-    - Dockerfile
-    - requirements.txt
+    backend/
+      app.py
+      Dockerfile
+      requirements.txt
 
-  frontend/
-    - index.html
-    - nginx.conf
-    - Dockerfile
+    frontend/
+      index.html
+      nginx.conf
+      Dockerfile
 
-  README.md
+    README.md
 
 ---
