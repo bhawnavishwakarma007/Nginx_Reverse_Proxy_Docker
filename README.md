@@ -1,109 +1,200 @@
-####### Backend-flask project #############
+# Backend Flask Project with Nginx Reverse Proxy (Docker)
 
-process::
-step-1
--->>Create rds with security group "port 3306 and all traffic enabled" 
--->>now connect sql work bench with your rds credentials
---->>now create database and run through workbench
+---
 
-# Python Backend Testing (Flask)
+## Backend Flask Project
 
-A small Flask backend used for testing MySQL/RDS connectivity and basic CRUD operations on a `users` table.
+### Process (Initial Database Setup)
+
+Step 1:
+  -->> Create an AWS RDS MySQL instance  
+  -->> Configure the security group:
+       - Allow port 3306
+       - Allow inbound traffic from the application server  
+  -->> Connect to the RDS instance using MySQL Workbench with RDS credentials  
+  -->> Create the database and tables using Workbench  
+
+---
+
+## Python Backend Testing (Flask)
+
+A small Flask backend used for testing MySQL / AWS RDS connectivity and basic CRUD operations on a `users` table.
+
+---
 
 ## Overview
 
-This repository contains a minimal Flask app (`app.py`) that demonstrates connecting to a MySQL-compatible database (local or AWS RDS) and exposes simple REST endpoints to manage users.
+This project contains a minimal Flask application (`app.py`) that connects to a MySQL-compatible database (local or AWS RDS) and exposes REST APIs to manage users.
+
+---
 
 ## Prerequisites
+
 - Python 3.8 or newer
 - pip
-- MySQL / MariaDB server or AWS RDS instance
-- git (optional)
+- MySQL / MariaDB or AWS RDS
+- Docker
+- Git (optional)
 
-## Quickstart (local)
+---
 
-1. Clone the repository:
+## Database Setup (Example)
 
-```bash
-git clone https://github.com/CloudTechDevOps/python-backend-testing.git
-cd python-backend-testing
-```
+  CREATE DATABASE dev;
+  USE dev;
 
+  CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE
+  );
 
-3. Create the database and table (example):
+---
 
-```sql
-CREATE DATABASE dev;
-USE dev;
+## Environment Configuration
 
-CREATE TABLE users (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  email VARCHAR(100) NOT NULL UNIQUE
-);
-```
+Edit `app.py` and update database credentials  
+OR export environment variables before running:
 
-4. Configure database connection:
+  DB_HOST=your-db-host  
+  DB_USER=your-db-user  
+  DB_PASS=your-db-password  
+  DB_NAME=dev  
 
-Edit `app.py` and set the `db_config` values, or export environment variables before running (example shown for Linux/macOS):
+---
 
-```bash
-DB_HOST=your-db-host
-DB_USER=your-db-user
-DB_PASS=your-db-password
-DB_NAME=dev
-```
-5. Run the app:
+## Run Flask App (Local)
 
-```bash
-python app.py
-```
+  python app.py
 
-The app listens on port 5000 by default (http://127.0.0.1:5000).
+The application runs on port 5000 by default:
+
+  http://127.0.0.1:5000
+
+---
 
 ## API Endpoints
 
-- GET /users — return all users
-- GET /users/<id> — return user by id
-- POST /users/add — add a new user (JSON body: `{"name":"..","email":".."}`)
-- PUT /users/update/<id> — update a user (JSON body with `name` and/or `email`)
-- DELETE /users/delete/<id> — delete a user
+- GET /users  
+  Returns all users  
 
-Examples:
+- GET /users/<id>  
+  Returns user by ID  
 
-```bash
-curl -X GET http://localhost:5000/users
+- POST /users/add  
+  Adds a new user  
+  JSON Body:
+    {"name":"John","email":"john@example.com"}
 
-curl -X POST http://localhost:5000/users/add \
-  -H "Content-Type: application/json" \
-  -d '{"name":"John Doe","email":"john@example.com"}'
+- PUT /users/update/<id>  
+  Updates a user  
 
-curl -X PUT http://localhost:5000/users/update/1 \
-  -H "Content-Type: application/json" \
-  -d '{"name":"John Updated","email":"john.updated@example.com"}'
+- DELETE /users/delete/<id>  
+  Deletes a user  
 
-curl -X DELETE http://localhost:5000/users/delete/1
-```
+---
 
-## Running on a server (example notes)
-- Use a production WSGI server (gunicorn, uWSGI) behind a reverse proxy for production.
-- For AWS: run the Flask app on an EC2 instance and use an RDS MySQL instance for the DB. Ensure security groups allow the required traffic (DB port 3306 allowed from the app host).
+## API Examples
 
-To run the app in background on Linux:
+  curl -X GET http://localhost:5000/users
 
-```bash
-# start
-nohup python3 app.py > flask.log 2>&1 &
-# check
-ps aux | grep app.py
-# stop
-pkill -f app.py
-```
+  curl -X POST http://localhost:5000/users/add \
+    -H "Content-Type: application/json" \
+    -d '{"name":"John Doe","email":"john@example.com"}'
 
-## Files
+  curl -X PUT http://localhost:5000/users/update/1 \
+    -H "Content-Type: application/json" \
+    -d '{"name":"John Updated","email":"john.updated@example.com"}'
 
-- `app.py` — main Flask application
-- `requirements.txt` — Python dependencies
-- `test.sql` — example SQL (if present)
+  curl -X DELETE http://localhost:5000/users/delete/1
 
-# Nginx_Reverse_Proxy_Docker
+---
+
+## Run Flask in Background (Linux)
+
+  nohup python3 app.py > flask.log 2>&1 &
+  ps aux | grep app.py
+  pkill -f app.py
+
+---
+
+## Project Files
+
+- app.py — Main Flask application
+- requirements.txt — Python dependencies
+- test.sql — Example SQL (if available)
+
+---
+
+## Nginx Reverse Proxy with Docker
+
+This setup uses **Nginx inside the frontend container** as a reverse proxy to route `/users` requests to the Flask backend.
+
+Architecture:
+
+  Browser
+     |
+     v
+  Nginx (Frontend Container)
+     |---- /        -> Static Frontend (HTML)
+     |---- /users   -> Flask Backend (Docker)
+
+Only **port 80** is exposed publicly.
+
+---
+
+## Docker Build & Run (No Compose)
+
+### Build and Run Backend
+
+  docker build -t backend ./backend
+  docker run -d --name backend backend
+
+Backend runs internally on port 5000.
+
+---
+
+### Build and Run Frontend (Nginx + Reverse Proxy)
+
+  docker build -t frontend ./frontend
+  docker run -d -p 80:80 --name frontend --link backend:backend frontend
+
+---
+
+## Access Application
+
+Open in browser:
+
+  http://<EC2_PUBLIC_IP>
+
+Frontend loads on `/`  
+API works on `/users`
+
+---
+
+## Notes
+
+- Do NOT expose port 5000 publicly
+- Security Group should allow:
+    - HTTP (80)
+    - MySQL (3306) only from app server
+- This setup avoids CORS issues
+- Clean production-style deployment using minimal Docker commands
+
+---
+
+## Repository Structure
+
+  backend/
+    - app.py
+    - Dockerfile
+    - requirements.txt
+
+  frontend/
+    - index.html
+    - nginx.conf
+    - Dockerfile
+
+  README.md
+
+---
