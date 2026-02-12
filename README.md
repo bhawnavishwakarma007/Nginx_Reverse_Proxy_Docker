@@ -106,3 +106,4 @@ pkill -f app.py
 - `requirements.txt` — Python dependencies
 - `test.sql` — example SQL (if present)
 
+# Nginx_Reverse_Proxy_Docker
